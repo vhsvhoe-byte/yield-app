@@ -1,21 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  AlertCircle,
-  ChevronDown,
-  Copy,
-  CornerDownRight,
-  Move,
-  Plus,
-  Redo2,
-  RotateCw,
-  Search,
-  Square,
-  Trash2,
-  Undo2,
-  Upload,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle, ChevronDown, Copy, CornerDownRight, Move, Plus, Redo2, RotateCw, Search, Square, Trash2, Undo2, Upload, ZoomIn, ZoomOut } from "lucide-react";
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 const clamp01 = (v) => clamp(v, 0, 1);
@@ -194,13 +183,6 @@ const translations = {
   },
 };
 
-const snapshotState = (parts, defects, selectedPartId, selectedDefectId) => ({
-  parts: JSON.parse(JSON.stringify(parts)),
-  defects: JSON.parse(JSON.stringify(defects)),
-  selectedPartId,
-  selectedDefectId,
-});
-
 const solveLinearSystem = (matrix, vector) => {
   const n = matrix.length;
   const a = matrix.map((row, i) => [...row, vector[i]]);
@@ -372,17 +354,24 @@ const createDefect = (id, boardPxWidth, boardPxHeight, mmPerPxX, mmPerPxY, t) =>
   };
 };
 
-function CollapsibleCard({ title, isCollapsed, onToggle, children }) {
-  return (
-    <section className="card">
-      <button type="button" className="card-header-button" onClick={onToggle}>
-        <h3>{title}</h3>
-        <ChevronDown className={`chevron ${isCollapsed ? "rotated" : ""}`} />
-      </button>
-      {!isCollapsed && <div className="card-body">{children}</div>}
-    </section>
-  );
-}
+const snapshotState = (parts, defects, selectedPartId, selectedDefectId) => ({
+  parts: JSON.parse(JSON.stringify(parts)),
+  defects: JSON.parse(JSON.stringify(defects)),
+  selectedPartId,
+  selectedDefectId,
+});
+
+const CollapsibleCard = ({ title, isCollapsed, onToggle, children, sticky = false }) => (
+  <Card className={sticky ? "rounded-2xl shadow-sm" : "rounded-2xl shadow-sm"}>
+    <CardHeader onClick={onToggle} className="cursor-pointer select-none">
+      <div className="flex items-center justify-between gap-4">
+        <CardTitle className="text-lg">{title}</CardTitle>
+        <ChevronDown className={`h-4 w-4 transition-transform ${isCollapsed ? "rotate-180" : ""}`} />
+      </div>
+    </CardHeader>
+    {!isCollapsed && <CardContent>{children}</CardContent>}
+  </Card>
+);
 
 export default function App() {
   const [language, setLanguage] = useState("de");
@@ -560,7 +549,7 @@ export default function App() {
       setZoom(1);
     };
     runRectification();
-  }, [perspectivePoints]);
+  }, [perspectivePoints, imageSrc]);
 
   const addPart = () => {
     pushHistory();
@@ -612,6 +601,7 @@ export default function App() {
 
   const updateSelectedPart = (patch) => {
     if (selectedPartId === null) return;
+    pushHistory();
     setParts((prev) => prev.map((p) => (p.id === selectedPartId ? { ...p, ...patch } : p)));
   };
 
@@ -726,133 +716,117 @@ export default function App() {
   const onPointerUp = () => setDragState(null);
 
   return (
-    <div className="app-shell">
-      <div className="app-grid">
-        <aside className="sidebar">
+    <div className="min-h-screen bg-slate-100 p-4 md:p-6">
+      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[360px_1fr]">
+        <div className="space-y-4">
           <CollapsibleCard title={t.appTitle} isCollapsed={collapsed.upload} onToggle={() => toggleSection("upload")}>
-            <div className="stack">
-              <div className="stack">
-                <LabelRow text={t.language} />
-                <select className="input" value={language} onChange={(e) => setLanguage(e.target.value)}>
-                  <option value="de">Deutsch</option>
-                  <option value="en">English</option>
-                  <option value="fr">Français</option>
-                </select>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>{t.language}</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="de">Deutsch</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="fr">Français</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="stack">
-                <LabelRow text={t.uploadPhoto} />
-                <div className="input-upload">
-                  <input className="input-file" type="file" accept="image/*" onChange={handleImageUpload} />
-                  <Upload size={16} />
+              <div className="space-y-2">
+                <Label htmlFor="imageUpload">{t.uploadPhoto}</Label>
+                <div className="flex items-center gap-2">
+                  <Input id="imageUpload" type="file" accept="image/*" onChange={handleImageUpload} />
+                  <Upload className="h-4 w-4 text-slate-500" />
                 </div>
               </div>
-              <div className="button-row wrap">
-                <button className="btn btn-secondary" onClick={handleRotateImage} disabled={!imageSrc}>
-                  <RotateCw size={16} /> {t.rotateImage}
-                </button>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={handleRotateImage} disabled={!imageSrc}>
+                  <RotateCw className="mr-2 h-4 w-4" /> {t.rotateImage}
+                </Button>
               </div>
-              <div className="hint">{t.hint}</div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{t.hint}</div>
             </div>
           </CollapsibleCard>
 
           <CollapsibleCard title={t.perspectiveTitle} isCollapsed={collapsed.perspective} onToggle={() => toggleSection("perspective")}>
-            <div className="stack">
-              <div className="button-row wrap">
-                <button className={`btn ${perspectiveMode ? "btn-primary" : "btn-secondary"}`} onClick={() => { setPerspectiveMode(true); setPerspectivePoints([]); }} disabled={!imageSrc}>
-                  <CornerDownRight size={16} /> {t.startPerspective}
-                </button>
-                <button className="btn btn-secondary" onClick={handleResetPerspective} disabled={!perspectiveMode && perspectivePoints.length === 0}>
-                  {t.resetPerspective}
-                </button>
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <Button variant={perspectiveMode ? "default" : "outline"} onClick={() => { setPerspectiveMode(true); setPerspectivePoints([]); }} disabled={!imageSrc}><CornerDownRight className="mr-2 h-4 w-4" /> {t.startPerspective}</Button>
+                <Button variant="outline" onClick={handleResetPerspective} disabled={!perspectiveMode && perspectivePoints.length === 0}>{t.resetPerspective}</Button>
               </div>
-              <div className="subtle-text">{t.perspectiveHint}</div>
-              <div className="subtle-text">{t.perspectiveRemaining} {Math.max(0, 4 - perspectivePoints.length)}</div>
+              <div className="text-sm text-slate-600">{t.perspectiveHint}</div>
+              <div className="text-sm text-slate-600">{t.perspectiveRemaining} {Math.max(0, 4 - perspectivePoints.length)}</div>
             </div>
           </CollapsibleCard>
 
           <CollapsibleCard title={t.step1} isCollapsed={collapsed.step1} onToggle={() => toggleSection("step1")}>
-            <div className="stack">
-              <div className="grid-2">
-                <div className="stack">
-                  <LabelRow text={t.boardLength} />
-                  <input className="input" type="number" value={board.realLengthMm} onChange={(e) => setBoard((prev) => ({ ...prev, realLengthMm: Number(e.target.value) || 0 }))} />
-                </div>
-                <div className="stack">
-                  <LabelRow text={t.boardWidth} />
-                  <input className="input" type="number" value={board.realWidthMm} onChange={(e) => setBoard((prev) => ({ ...prev, realWidthMm: Number(e.target.value) || 0 }))} />
-                </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2"><Label>{t.boardLength}</Label><Input type="number" value={board.realLengthMm} onChange={(e) => setBoard((prev) => ({ ...prev, realLengthMm: Number(e.target.value) || 0 }))} /></div>
+                <div className="space-y-2"><Label>{t.boardWidth}</Label><Input type="number" value={board.realWidthMm} onChange={(e) => setBoard((prev) => ({ ...prev, realWidthMm: Number(e.target.value) || 0 }))} /></div>
               </div>
-              <div className="button-row wrap">
-                <button className={`btn ${boardMode === "move" ? "btn-primary" : "btn-secondary"}`} onClick={() => setBoardMode("move")}><Move size={16} /> {t.moveFrame}</button>
-                <button className={`btn ${boardMode === "resize" ? "btn-primary" : "btn-secondary"}`} onClick={() => setBoardMode("resize")}><Square size={16} /> {t.resizeFrame}</button>
+              <div className="flex flex-wrap gap-2">
+                <Button variant={boardMode === "move" ? "default" : "outline"} onClick={() => setBoardMode("move")}><Move className="mr-2 h-4 w-4" /> {t.moveFrame}</Button>
+                <Button variant={boardMode === "resize" ? "default" : "outline"} onClick={() => setBoardMode("resize")}><Square className="mr-2 h-4 w-4" /> {t.resizeFrame}</Button>
               </div>
-              <div className="subtle-text">{t.scaling} 1 px = {safeMmPerPxX.toFixed(2)} {t.pxLength}, {safeMmPerPxY.toFixed(2)} {t.pxWidth}.</div>
+              <div className="text-sm text-slate-600">{t.scaling} 1 px = {safeMmPerPxX.toFixed(2)} {t.pxLength}, {safeMmPerPxY.toFixed(2)} {t.pxWidth}.</div>
             </div>
           </CollapsibleCard>
 
           <CollapsibleCard title={t.step2} isCollapsed={collapsed.step2} onToggle={() => toggleSection("step2")}>
-            <div className="stack">
-              <div className="button-row wrap">
-                <button className="btn btn-primary" onClick={addPart}><Plus size={16} /> {t.addRectangle}</button>
-                <button className="btn btn-secondary" onClick={addDefect}><AlertCircle size={16} /> {t.addDefect}</button>
-                <button className="btn btn-secondary" onClick={duplicateSelectedPart} disabled={!selectedPart}><Copy size={16} /> {t.duplicatePart}</button>
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={addPart}><Plus className="mr-2 h-4 w-4" /> {t.addRectangle}</Button>
+                <Button variant="outline" onClick={addDefect}><AlertCircle className="mr-2 h-4 w-4" /> {t.addDefect}</Button>
+                <Button variant="outline" onClick={duplicateSelectedPart} disabled={!selectedPart}><Copy className="mr-2 h-4 w-4" /> {t.duplicatePart}</Button>
               </div>
               {selectedPart && (
-                <div className="panel">
-                  <div className="panel-title">{t.selectedPart} {selectedPart.name}</div>
-                  <div className="stack">
-                    <LabelRow text={t.partName} />
-                    <input className="input" value={selectedPart.name} onChange={(e) => updateSelectedPart({ name: e.target.value })} />
+                <div className="space-y-3 rounded-xl border p-3">
+                  <div className="font-medium">{t.selectedPart} {selectedPart.name}</div>
+                  <div className="space-y-2">
+                    <Label>{t.partName}</Label>
+                    <Input value={selectedPart.name} onChange={(e) => updateSelectedPart({ name: e.target.value })} />
                   </div>
-                  <div className="grid-2">
-                    <div className="stack">
-                      <LabelRow text={t.partLength} />
-                      <input className="input" type="number" value={selectedPart.lengthMm} onChange={(e) => updateSelectedPart({ lengthMm: Number(e.target.value) || 0 })} />
-                    </div>
-                    <div className="stack">
-                      <LabelRow text={t.partWidth} />
-                      <input className="input" type="number" value={selectedPart.widthMm} onChange={(e) => updateSelectedPart({ widthMm: Number(e.target.value) || 0 })} />
-                    </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2"><Label>{t.partLength}</Label><Input type="number" value={selectedPart.lengthMm} onChange={(e) => updateSelectedPart({ lengthMm: Number(e.target.value) || 0 })} /></div>
+                    <div className="space-y-2"><Label>{t.partWidth}</Label><Input type="number" value={selectedPart.widthMm} onChange={(e) => updateSelectedPart({ widthMm: Number(e.target.value) || 0 })} /></div>
                   </div>
-                  <button className="btn btn-danger" onClick={removeSelectedPart}><Trash2 size={16} /> {t.deletePart}</button>
+                  <Button variant="destructive" onClick={removeSelectedPart}><Trash2 className="mr-2 h-4 w-4" /> {t.deletePart}</Button>
                 </div>
               )}
               {selectedDefect && (
-                <div className="panel">
-                  <div className="panel-title">{t.selectedDefect}</div>
-                  <div className="subtle-text">{t.defectHint}</div>
-                  <button className="btn btn-danger" onClick={removeSelectedDefect}><Trash2 size={16} /> {t.deleteDefect}</button>
+                <div className="space-y-3 rounded-xl border p-3">
+                  <div className="font-medium">{t.selectedDefect}</div>
+                  <div className="text-sm text-slate-600">{t.defectHint}</div>
+                  <Button variant="destructive" onClick={removeSelectedDefect}><Trash2 className="mr-2 h-4 w-4" /> {t.deleteDefect}</Button>
                 </div>
               )}
             </div>
           </CollapsibleCard>
 
           <CollapsibleCard title={t.gridTitle} isCollapsed={collapsed.grid} onToggle={() => toggleSection("grid")}>
-            <div className="stack">
-              <label className="checkbox-row">
-                <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} />
+            <div className="space-y-4">
+              <label className="flex items-center gap-3 text-sm text-slate-700">
+                <input type="checkbox" checked={showGrid} onChange={(e) => setShowGrid(e.target.checked)} className="h-4 w-4 rounded border-slate-300" />
                 <span>{t.showGrid}</span>
               </label>
-              <div className="stack">
-                <LabelRow text={t.kerfWidth} />
-                <input className="input" type="number" min="0" value={sawKerfMm} onChange={(e) => setSawKerfMm(Number(e.target.value) || 0)} />
-              </div>
-              <div className="subtle-text">{t.kerfPreview} {sawKerfStrokePx.toFixed(2)} {t.kerfUnit}</div>
+              <div className="space-y-2"><Label>{t.kerfWidth}</Label><Input type="number" min="0" value={sawKerfMm} onChange={(e) => setSawKerfMm(Number(e.target.value) || 0)} /></div>
+              <div className="text-sm text-slate-600">{t.kerfPreview} {sawKerfStrokePx.toFixed(2)} {t.kerfUnit}</div>
             </div>
           </CollapsibleCard>
 
           <CollapsibleCard title={t.step3} isCollapsed={collapsed.step3} onToggle={() => toggleSection("step3")}>
-            <div className="stack">
-              <div className="summary-box">
+            <div className="space-y-3">
+              <div className="rounded-xl bg-slate-50 p-3 text-sm">
                 <div>{t.boardArea} {(boardAreaMm2 / 1000000).toFixed(3)} m²</div>
                 <div>{t.validPartArea} {(validAreaMm2 / 1000000).toFixed(3)} m²</div>
-                <div className="summary-strong">{t.yield} {yieldPercent.toFixed(1)} %</div>
+                <div className="mt-2 text-lg font-semibold">{t.yield} {yieldPercent.toFixed(1)} %</div>
               </div>
-              <div className="stack">
-                {enrichedParts.length === 0 && <div className="subtle-text">{t.noParts}</div>}
+              <div className="space-y-2 text-sm">
+                {enrichedParts.length === 0 && <div className="text-slate-500">{t.noParts}</div>}
                 {enrichedParts.map((p) => (
-                  <div key={p.id} className={`status-card ${p.valid ? "status-valid" : "status-invalid"}`}>
-                    <div className="panel-title">{p.name}</div>
+                  <div key={p.id} className={`rounded-lg border p-2 ${p.valid ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}>
+                    <div className="font-medium">{p.name}</div>
                     <div>{p.lengthMm} × {p.widthMm} mm</div>
                     <div>{t.status} {p.valid ? t.valid : p.overlapsDefect ? t.overlapsDefect : t.outsideBoard}</div>
                   </div>
@@ -860,37 +834,30 @@ export default function App() {
               </div>
             </div>
           </CollapsibleCard>
-        </aside>
+        </div>
 
-        <main className="workspace-column">
-          <div className="sticky-toolbar">
-            <div className="card card-body">
-              <div className="button-row wrap">
-                <button className="btn btn-secondary" onClick={undo} disabled={history.past.length === 0}><Undo2 size={16} /> {t.undo}</button>
-                <button className="btn btn-secondary" onClick={redo} disabled={history.future.length === 0}><Redo2 size={16} /> {t.redo}</button>
-                <button className="btn btn-secondary" onClick={() => setZoom((z) => clamp(Number((z - 0.25).toFixed(2)), 0.5, 4))}><ZoomOut size={16} /> {t.zoomOut}</button>
-                <button className="btn btn-secondary" onClick={() => setZoom((z) => clamp(Number((z + 0.25).toFixed(2)), 0.5, 4))}><ZoomIn size={16} /> {t.zoomIn}</button>
-                <button className="btn btn-secondary" onClick={() => setZoom(1)}><Search size={16} /> {t.zoomReset}</button>
-              </div>
-              <div className="subtle-text top-gap">{t.zoomLevel} {zoom.toFixed(2)}x</div>
-            </div>
+        <div className="space-y-4">
+          <div className="sticky top-4 z-20 space-y-3 bg-slate-100/95 pb-2 backdrop-blur">
+            <Card className="rounded-2xl shadow-sm">
+              <CardContent className="pt-6">
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={undo} disabled={history.past.length === 0}><Undo2 className="mr-2 h-4 w-4" /> {t.undo}</Button>
+                  <Button variant="outline" onClick={redo} disabled={history.future.length === 0}><Redo2 className="mr-2 h-4 w-4" /> {t.redo}</Button>
+                  <Button variant="outline" onClick={() => setZoom((z) => clamp(Number((z - 0.25).toFixed(2)), 0.5, 4))}><ZoomOut className="mr-2 h-4 w-4" /> {t.zoomOut}</Button>
+                  <Button variant="outline" onClick={() => setZoom((z) => clamp(Number((z + 0.25).toFixed(2)), 0.5, 4))}><ZoomIn className="mr-2 h-4 w-4" /> {t.zoomIn}</Button>
+                  <Button variant="outline" onClick={() => setZoom(1)}><Search className="mr-2 h-4 w-4" /> {t.zoomReset}</Button>
+                </div>
+                <div className="mt-3 text-sm text-slate-600">{t.zoomLevel} {zoom.toFixed(2)}x</div>
+              </CardContent>
+            </Card>
           </div>
 
-          <section className="card">
-            <div className="card-body">
-              <div className="workspace-scroll" style={{ height: "78vh" }}>
+          <Card className="rounded-2xl shadow-sm">
+            <CardHeader><CardTitle className="text-lg">{t.workspace}</CardTitle></CardHeader>
+            <CardContent>
+              <div className="overflow-auto rounded-2xl border bg-white" style={{ height: "78vh" }}>
                 <div style={{ width: `${imageSize.width * zoom}px`, height: `${imageSize.height * zoom}px` }}>
-                  <svg
-                    ref={svgRef}
-                    viewBox={`0 0 ${imageSize.width} ${imageSize.height}`}
-                    className="svg-surface"
-                    style={{ width: `${imageSize.width * zoom}px`, height: `${imageSize.height * zoom}px`, display: "block" }}
-                    onPointerDown={handleWorkspacePointerDown}
-                    onPointerMove={onPointerMove}
-                    onPointerUp={onPointerUp}
-                    onPointerLeave={onPointerUp}
-                    onPointerCancel={onPointerUp}
-                  >
+                  <svg ref={svgRef} viewBox={`0 0 ${imageSize.width} ${imageSize.height}`} className="touch-none" style={{ width: `${imageSize.width * zoom}px`, height: `${imageSize.height * zoom}px`, display: "block" }} onPointerDown={handleWorkspacePointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerUp} onPointerCancel={onPointerUp}>
                     {imageSrc ? <image href={imageSrc} x="0" y="0" width={imageSize.width} height={imageSize.height} preserveAspectRatio="none" /> : <rect x="0" y="0" width={imageSize.width} height={imageSize.height} fill="#e2e8f0" />}
                     {perspectivePoints.map((point, index) => (
                       <g key={`perspective-${index}`} pointerEvents="none">
@@ -933,14 +900,10 @@ export default function App() {
                   </svg>
                 </div>
               </div>
-            </div>
-          </section>
-        </main>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
-}
-
-function LabelRow({ text }) {
-  return <label className="label">{text}</label>;
 }
