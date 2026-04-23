@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { AlertCircle, ChevronDown, Copy, CornerDownRight, Move, Plus, Redo2, Rot
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 const clamp01 = (v) => clamp(v, 0, 1);
+const FIT_PADDING = 32;
 
 const translations = {
   de: {
@@ -36,6 +37,7 @@ const translations = {
     zoomIn: "Reinzoomen",
     zoomOut: "Rauszoomen",
     zoomReset: "Zoom zurücksetzen",
+    zoomFit: "Bild einpassen",
     zoomLevel: "Zoomstufe:",
     step2: "2. Geometrien und Fehlerstellen",
     addRectangle: "Rechteck hinzufügen",
@@ -93,6 +95,7 @@ const translations = {
     zoomIn: "Zoom in",
     zoomOut: "Zoom out",
     zoomReset: "Reset zoom",
+    zoomFit: "Fit image",
     zoomLevel: "Zoom level:",
     step2: "2. Shapes and defects",
     addRectangle: "Add rectangle",
@@ -150,6 +153,7 @@ const translations = {
     zoomIn: "Zoomer",
     zoomOut: "Dézoomer",
     zoomReset: "Réinitialiser le zoom",
+    zoomFit: "Ajuster l'image",
     zoomLevel: "Niveau de zoom :",
     step2: "2. Géométries et défauts",
     addRectangle: "Ajouter un rectangle",
