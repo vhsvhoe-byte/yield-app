@@ -30,8 +30,10 @@ const T = {
   perspectiveHint: "Reihenfolge: oben links, oben rechts, unten rechts, unten links.",
   perspectiveRemaining: "Punkte offen:",
   boardTitle: "Brett kalibrieren",
-  boardLength: "Länge [mm]",
-  boardWidth: "Breite [mm]",
+  boardLength: "X [mm]",
+  boardWidth: "Y [mm]",
+  xAxis: "X-Achse",
+  yAxis: "Y-Achse",
   moveFrame: "Rahmen bewegen",
   resizeFrame: "Rahmen skalieren",
   partsTitle: "Bauteile & Fehler",
@@ -39,8 +41,8 @@ const T = {
   addDefect: "Fehler",
   duplicatePart: "Duplizieren",
   partName: "Bezeichnung",
-  partLength: "Länge [mm]",
-  partWidth: "Breite [mm]",
+  partLength: "X [mm]",
+  partWidth: "Y [mm]",
   deletePart: "Bauteil löschen",
   deleteDefect: "Fehler löschen",
   gridTitle: "Raster & Sägefuge",
@@ -400,7 +402,7 @@ export default function App() {
     const rows = enrichedParts.map((p) => `<tr><td>${p.name}</td><td>${Math.round(p.lengthMm)}</td><td>${Math.round(p.widthMm)}</td><td>${(p.areaMm2 / 1000000).toFixed(3)}</td><td>${p.valid ? T.valid : p.overlapsDefect ? T.overlapsDefect : T.outsideBoard}</td></tr>`).join("");
     const win = window.open("", "_blank");
     if (!win) return;
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${T.exportPdf}</title><style>body{font-family:Arial;margin:24px;color:#111}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ccc;padding:6px}.layout{display:grid;grid-template-columns:1fr 1.2fr;gap:20px}img{width:100%;border:1px solid #ccc}.summary{display:flex;gap:12px;margin:12px 0}.box{border:1px solid #ccc;padding:10px;border-radius:8px}</style></head><body><button onclick="window.print()">PDF drucken</button><h1>Ausbeutebericht</h1><div class="summary"><div class="box">${T.boardArea}<br>${(boardAreaMm2 / 1000000).toFixed(3)} m²</div><div class="box">${T.validPartArea}<br>${(validAreaMm2 / 1000000).toFixed(3)} m²</div><div class="box">${T.yield}<br>${yieldPercent.toFixed(1)} %</div></div><div class="layout"><div><h2>Bauteile</h2><table><thead><tr><th>Name</th><th>L</th><th>B</th><th>m²</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div><div><h2>Bild</h2><img src="${svgUrl}"></div></div></body></html>`);
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${T.exportPdf}</title><style>body{font-family:Arial;margin:24px;color:#111}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ccc;padding:6px}.layout{display:grid;grid-template-columns:1fr 1.2fr;gap:20px}img{width:100%;border:1px solid #ccc}.summary{display:flex;gap:12px;margin:12px 0}.box{border:1px solid #ccc;padding:10px;border-radius:8px}</style></head><body><button onclick="window.print()">PDF drucken</button><h1>Ausbeutebericht</h1><div class="summary"><div class="box">${T.boardArea}<br>${(boardAreaMm2 / 1000000).toFixed(3)} m²</div><div class="box">${T.validPartArea}<br>${(validAreaMm2 / 1000000).toFixed(3)} m²</div><div class="box">${T.yield}<br>${yieldPercent.toFixed(1)} %</div></div><div class="layout"><div><h2>Bauteile</h2><table><thead><tr><th>Name</th><th>X [mm]</th><th>Y [mm]</th><th>m²</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div><div><h2>Bild</h2><img src="${svgUrl}"></div></div></body></html>`);
     win.document.close();
   };
 
@@ -578,7 +580,7 @@ export default function App() {
         .toolbar { position: sticky; top: 0; z-index: 10; background: rgba(15,23,42,.94); backdrop-filter: blur(8px); border-bottom: 1px solid #263449; padding: 12px; display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
         .toolbarLeft, .toolbarRight, .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .workspaceColumn { min-width: 0; display: flex; flex-direction: column; height: 100vh; }
-        .workspace { flex: 1; overflow: auto; padding: 24px; background: radial-gradient(circle at center, #182235 0%, #0f172a 70%); }
+        .workspace { flex: 1; overflow: auto; padding: 24px; background: radial-gradient(circle at center, #182235 0%, #0f172a 70%); position: relative; }
         .canvasWrap { min-width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; }
         .surface { background: #dbe4ee; border-radius: 12px; box-shadow: 0 18px 50px rgba(0,0,0,.35); overflow: hidden; }
         .btn { min-height: 38px; border: 1px solid #334155; background: #1e293b; color: #f8fafc; border-radius: 10px; padding: 0 12px; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-weight: 650; font-size: 13px; }
@@ -600,6 +602,16 @@ export default function App() {
         .ok { background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.35); }
         .bad { background: rgba(244,63,94,.12); border-color: rgba(244,63,94,.35); }
         .svg { touch-action: none; display: block; }
+        .axisWidget { position: sticky; left: 24px; bottom: 24px; width: 170px; height: 170px; z-index: 30; pointer-events: none; margin-top: -170px; }
+        .axisPanel { position: absolute; left: 0; bottom: 0; width: 165px; height: 150px; border: 1px solid rgba(148,163,184,.35); border-radius: 16px; background: rgba(15,23,42,.82); backdrop-filter: blur(10px); box-shadow: 0 12px 32px rgba(0,0,0,.28); }
+        .axisOrigin { position: absolute; left: 34px; bottom: 34px; width: 8px; height: 8px; border-radius: 50%; background: #e5e7eb; }
+        .axisXLine { position: absolute; left: 38px; bottom: 37px; width: 92px; height: 4px; border-radius: 999px; background: #2563eb; }
+        .axisXLine::after { content: ''; position: absolute; right: -9px; top: -6px; border-left: 12px solid #2563eb; border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+        .axisYLine { position: absolute; left: 36px; bottom: 38px; width: 4px; height: 82px; border-radius: 999px; background: #dc2626; }
+        .axisYLine::after { content: ''; position: absolute; left: -6px; top: -9px; border-bottom: 12px solid #dc2626; border-left: 8px solid transparent; border-right: 8px solid transparent; }
+        .axisXLabel { position: absolute; left: 114px; bottom: 48px; color: #60a5fa; font-weight: 900; font-size: 14px; }
+        .axisYLabel { position: absolute; left: 50px; top: 24px; color: #f87171; font-weight: 900; font-size: 14px; }
+        .axisLegend { position: absolute; left: 16px; bottom: 8px; color: #cbd5e1; font-size: 11px; line-height: 1.35; }
         @media (max-width: 900px) { .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; } .sidebar { height: 38vh; border-right: 0; border-bottom: 1px solid #263449; } .workspaceColumn { height: 62vh; } .toolbar { position: relative; } }
       `}</style>
 
@@ -637,7 +649,7 @@ export default function App() {
             <IconButton active={boardMode === "move"} onClick={() => setBoardMode("move")}><Move size={16} />{T.moveFrame}</IconButton>
             <IconButton active={boardMode === "resize"} onClick={() => setBoardMode("resize")}><Square size={16} />{T.resizeFrame}</IconButton>
           </div>
-          <div className="muted">1 px = {safeMmPerPxX.toFixed(2)} mm Länge / {safeMmPerPxY.toFixed(2)} mm Breite</div>
+          <div className="muted">1 px = {safeMmPerPxX.toFixed(2)} mm X / {safeMmPerPxY.toFixed(2)} mm Y</div>
         </CardBox>
 
         <CardBox title={T.partsTitle} collapsed={collapsed.parts} onToggle={() => toggle("parts")}>
@@ -678,7 +690,7 @@ export default function App() {
           </div>
           {enrichedParts.map((p) => (
             <div className={`status ${p.valid ? "ok" : "bad"}`} key={p.id}>
-              <strong>{p.name}</strong><br />{Math.round(p.lengthMm)} × {Math.round(p.widthMm)} mm · {p.valid ? T.valid : p.overlapsDefect ? T.overlapsDefect : T.outsideBoard}
+              <strong>{p.name}</strong><br />X {Math.round(p.lengthMm)} × Y {Math.round(p.widthMm)} mm · {p.valid ? T.valid : p.overlapsDefect ? T.overlapsDefect : T.outsideBoard}
             </div>
           ))}
         </CardBox>
@@ -715,6 +727,14 @@ export default function App() {
                 onPointerLeave={onPointerUp}
                 onPointerCancel={onPointerUp}
               >
+                <defs>
+                  <marker id="arrow-x" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#2563eb" />
+                  </marker>
+                  <marker id="arrow-y" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#dc2626" />
+                  </marker>
+                </defs>
                 {imageSrc ? <image href={imageSrc} x="0" y="0" width={imageSize.width} height={imageSize.height} preserveAspectRatio="none" /> : <rect x="0" y="0" width={imageSize.width} height={imageSize.height} fill="#dbe4ee" />}
                 {perspectivePoints.map((point, index) => (
                   <g key={`perspective-${index}`} pointerEvents="none">
@@ -753,6 +773,16 @@ export default function App() {
                   ))}
                 </g>
               </svg>
+            </div>
+          </div>
+          <div className="axisWidget" aria-hidden="true">
+            <div className="axisPanel">
+              <div className="axisOrigin" />
+              <div className="axisXLine" />
+              <div className="axisYLine" />
+              <div className="axisXLabel">X</div>
+              <div className="axisYLabel">Y</div>
+              <div className="axisLegend">X = Brettlänge<br />Y = Brettbreite</div>
             </div>
           </div>
         </div>
