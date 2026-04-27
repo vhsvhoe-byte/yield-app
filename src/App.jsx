@@ -19,6 +19,7 @@ import {
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const clamp01 = (value) => clamp(value, 0, 1);
+const SNAP_DISTANCE_PX = 14;
 
 const TRANSLATIONS = {
   de: {
@@ -59,6 +60,7 @@ const TRANSLATIONS = {
     valid: "gültig",
     overlapsDefect: "überlappt Fehler",
     outsideBoard: "außerhalb",
+    overlapsPart: "überlappt Bauteil",
     undo: "Zurück",
     redo: "Vor",
     zoomIn: "Zoom +",
@@ -116,6 +118,7 @@ const TRANSLATIONS = {
     valid: "valid",
     overlapsDefect: "overlaps defect",
     outsideBoard: "outside",
+    overlapsPart: "overlaps part",
     undo: "Undo",
     redo: "Redo",
     zoomIn: "Zoom +",
@@ -173,6 +176,7 @@ const TRANSLATIONS = {
     valid: "valide",
     overlapsDefect: "chevauche un défaut",
     outsideBoard: "hors zone",
+    overlapsPart: "chevauche une pièce",
     undo: "Retour",
     redo: "Avancer",
     zoomIn: "Zoom +",
@@ -396,13 +400,20 @@ export default function App() {
 
   const enrichedDefects = useMemo(() => defects.map((d) => ({ ...d, widthPx: d.lengthMm / safeMmPerPxX, heightPx: d.widthMm / safeMmPerPxY })), [defects, safeMmPerPxX, safeMmPerPxY]);
 
-  const enrichedParts = useMemo(() => parts.map((p) => {
-    const widthPx = p.lengthMm / safeMmPerPxX;
-    const heightPx = p.widthMm / safeMmPerPxY;
-    const insideBoard = p.x >= 0 && p.y >= 0 && p.x + widthPx <= board.width && p.y + heightPx <= board.height;
-    const overlapsDefect = enrichedDefects.some((d) => !(p.x + widthPx <= d.x || p.x >= d.x + d.widthPx || p.y + heightPx <= d.y || p.y >= d.y + d.heightPx));
-    return { ...p, widthPx, heightPx, areaMm2: p.lengthMm * p.widthMm, insideBoard, overlapsDefect, valid: insideBoard && !overlapsDefect };
-  }), [parts, enrichedDefects, board.width, board.height, safeMmPerPxX, safeMmPerPxY]);
+  const enrichedParts = useMemo(() => {
+    const baseParts = parts.map((p) => {
+      const widthPx = p.lengthMm / safeMmPerPxX;
+      const heightPx = p.widthMm / safeMmPerPxY;
+      const insideBoard = p.x >= 0 && p.y >= 0 && p.x + widthPx <= board.width && p.y + heightPx <= board.height;
+      const overlapsDefect = enrichedDefects.some((d) => !(p.x + widthPx <= d.x || p.x >= d.x + d.widthPx || p.y + heightPx <= d.y || p.y >= d.y + d.heightPx));
+      return { ...p, widthPx, heightPx, areaMm2: p.lengthMm * p.widthMm, insideBoard, overlapsDefect };
+    });
+
+    return baseParts.map((p) => {
+      const overlapsPart = baseParts.some((other) => other.id !== p.id && !(p.x + p.widthPx <= other.x || p.x >= other.x + other.widthPx || p.y + p.heightPx <= other.y || p.y >= other.y + other.heightPx));
+      return { ...p, overlapsPart, valid: p.insideBoard && !p.overlapsDefect && !overlapsPart };
+    });
+  }, [parts, enrichedDefects, board.width, board.height, safeMmPerPxX, safeMmPerPxY]);
 
   const selectedPart = enrichedParts.find((p) => p.id === selectedPartId) || null;
   const selectedDefect = enrichedDefects.find((d) => d.id === selectedDefectId) || null;
@@ -469,6 +480,51 @@ export default function App() {
     const rect = svgRef.current?.getBoundingClientRect();
     if (!rect || rect.width === 0 || rect.height === 0) return { x: 0, y: 0 };
     return { x: ((event.clientX - rect.left) / rect.width) * imageSize.width, y: ((event.clientY - rect.top) / rect.height) * imageSize.height };
+  };
+
+  const snapPartPosition = (partId, x, y, widthPx, heightPx) => {
+    let snappedX = x;
+    let snappedY = y;
+    let bestX = SNAP_DISTANCE_PX + 1;
+    let bestY = SNAP_DISTANCE_PX + 1;
+
+    enrichedParts.forEach((other) => {
+      if (other.id === partId) return;
+
+      const xCandidates = [
+        other.x - widthPx,
+        other.x,
+        other.x + other.widthPx - widthPx,
+        other.x + other.widthPx,
+      ];
+      const yCandidates = [
+        other.y - heightPx,
+        other.y,
+        other.y + other.heightPx - heightPx,
+        other.y + other.heightPx,
+      ];
+
+      xCandidates.forEach((candidate) => {
+        const distance = Math.abs(x - candidate);
+        if (distance < bestX && distance <= SNAP_DISTANCE_PX) {
+          bestX = distance;
+          snappedX = candidate;
+        }
+      });
+
+      yCandidates.forEach((candidate) => {
+        const distance = Math.abs(y - candidate);
+        if (distance < bestY && distance <= SNAP_DISTANCE_PX) {
+          bestY = distance;
+          snappedY = candidate;
+        }
+      });
+    });
+
+    return {
+      x: clamp(snappedX, 0, Math.max(0, board.width - widthPx)),
+      y: clamp(snappedY, 0, Math.max(0, board.height - heightPx)),
+    };
   };
 
   const handleImageUpload = (event) => {
