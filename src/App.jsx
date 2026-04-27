@@ -20,50 +20,178 @@ import {
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const clamp01 = (value) => clamp(value, 0, 1);
 
-const T = {
-  appTitle: "Holz-Ausbeute-App",
-  uploadPhoto: "Brettfoto laden",
-  rotateImage: "Foto 90° drehen",
-  perspectiveTitle: "Perspektivkorrektur",
-  startPerspective: "Brettecken wählen",
-  resetPerspective: "Zurücksetzen",
-  perspectiveHint: "Reihenfolge: oben links, oben rechts, unten rechts, unten links.",
-  perspectiveRemaining: "Punkte offen:",
-  boardTitle: "Brett kalibrieren",
-  boardLength: "X [mm]",
-  boardWidth: "Y [mm]",
-  xAxis: "X-Achse",
-  yAxis: "Y-Achse",
-  moveFrame: "Rahmen bewegen",
-  resizeFrame: "Rahmen skalieren",
-  partsTitle: "Bauteile & Fehler",
-  addPart: "Bauteil",
-  addDefect: "Fehler",
-  duplicatePart: "Duplizieren",
-  partName: "Bezeichnung",
-  partLength: "X [mm]",
-  partWidth: "Y [mm]",
-  deletePart: "Bauteil löschen",
-  deleteDefect: "Fehler löschen",
-  gridTitle: "Raster & Sägefuge",
-  showGrid: "10-cm-Raster anzeigen",
-  kerfWidth: "Sägefuge [mm]",
-  resultTitle: "Ausbeute",
-  boardArea: "Brettfläche",
-  validPartArea: "Gültige Teilefläche",
-  yield: "Ausbeute",
-  valid: "gültig",
-  overlapsDefect: "überlappt Fehler",
-  outsideBoard: "außerhalb",
-  undo: "Zurück",
-  redo: "Vor",
-  zoomIn: "Zoom +",
-  zoomOut: "Zoom −",
-  zoomFit: "Einpassen",
-  zoomReset: "100 %",
-  exportPdf: "PDF",
-  part: "Teil",
-  defect: "Fehler",
+const TRANSLATIONS = {
+  de: {
+    appTitle: "Holz-Ausbeute-App",
+    subtitle: "Ausbeute visuell planen und dokumentieren",
+    language: "Sprache",
+    uploadPhoto: "Brettfoto laden",
+    rotateImage: "Foto 90° drehen",
+    perspectiveTitle: "Perspektivkorrektur",
+    startPerspective: "Brettecken wählen",
+    resetPerspective: "Zurücksetzen",
+    perspectiveHint: "Reihenfolge: oben links, oben rechts, unten rechts, unten links.",
+    perspectiveRemaining: "Punkte offen:",
+    boardTitle: "Brett kalibrieren",
+    boardLength: "X [mm]",
+    boardWidth: "Y [mm]",
+    xAxis: "X-Achse",
+    yAxis: "Y-Achse",
+    moveFrame: "Rahmen bewegen",
+    resizeFrame: "Rahmen skalieren",
+    partsTitle: "Bauteile & Fehler",
+    addPart: "Bauteil",
+    addDefect: "Fehler",
+    duplicatePart: "Duplizieren",
+    partName: "Bezeichnung",
+    partLength: "X [mm]",
+    partWidth: "Y [mm]",
+    deletePart: "Bauteil löschen",
+    deleteDefect: "Fehler löschen",
+    defectMoveHint: "Fehler mit Ziehpunkten an den Ecken skalieren.",
+    gridTitle: "Raster & Sägefuge",
+    showGrid: "10-cm-Raster anzeigen",
+    kerfWidth: "Sägefuge [mm]",
+    resultTitle: "Ausbeute",
+    boardArea: "Brettfläche",
+    validPartArea: "Gültige Teilefläche",
+    yield: "Ausbeute",
+    valid: "gültig",
+    overlapsDefect: "überlappt Fehler",
+    outsideBoard: "außerhalb",
+    undo: "Zurück",
+    redo: "Vor",
+    zoomIn: "Zoom +",
+    zoomOut: "Zoom −",
+    zoomFit: "Einpassen",
+    zoomReset: "100 %",
+    exportPdf: "PDF",
+    printPdf: "PDF drucken",
+    reportTitle: "Ausbeutebericht",
+    partsTableTitle: "Bauteile",
+    imageTitle: "Bild",
+    name: "Name",
+    status: "Status",
+    part: "Teil",
+    defect: "Fehler",
+    xLegend: "X = Brettlänge",
+    yLegend: "Y = Brettbreite",
+    photo: "Foto",
+  },
+  en: {
+    appTitle: "Wood Yield App",
+    subtitle: "Visually plan and document yield",
+    language: "Language",
+    uploadPhoto: "Upload board photo",
+    rotateImage: "Rotate photo 90°",
+    perspectiveTitle: "Perspective correction",
+    startPerspective: "Select board corners",
+    resetPerspective: "Reset",
+    perspectiveHint: "Order: top left, top right, bottom right, bottom left.",
+    perspectiveRemaining: "Open points:",
+    boardTitle: "Calibrate board",
+    boardLength: "X [mm]",
+    boardWidth: "Y [mm]",
+    xAxis: "X axis",
+    yAxis: "Y axis",
+    moveFrame: "Move frame",
+    resizeFrame: "Resize frame",
+    partsTitle: "Parts & defects",
+    addPart: "Part",
+    addDefect: "Defect",
+    duplicatePart: "Duplicate",
+    partName: "Label",
+    partLength: "X [mm]",
+    partWidth: "Y [mm]",
+    deletePart: "Delete part",
+    deleteDefect: "Delete defect",
+    defectMoveHint: "Resize defects using the corner handles.",
+    gridTitle: "Grid & saw kerf",
+    showGrid: "Show 10 cm grid",
+    kerfWidth: "Saw kerf [mm]",
+    resultTitle: "Yield",
+    boardArea: "Board area",
+    validPartArea: "Valid part area",
+    yield: "Yield",
+    valid: "valid",
+    overlapsDefect: "overlaps defect",
+    outsideBoard: "outside",
+    undo: "Undo",
+    redo: "Redo",
+    zoomIn: "Zoom +",
+    zoomOut: "Zoom −",
+    zoomFit: "Fit",
+    zoomReset: "100 %",
+    exportPdf: "PDF",
+    printPdf: "Print PDF",
+    reportTitle: "Yield report",
+    partsTableTitle: "Parts",
+    imageTitle: "Image",
+    name: "Name",
+    status: "Status",
+    part: "Part",
+    defect: "Defect",
+    xLegend: "X = board length",
+    yLegend: "Y = board width",
+    photo: "Photo",
+  },
+  fr: {
+    appTitle: "Application de rendement bois",
+    subtitle: "Planifier et documenter le rendement visuellement",
+    language: "Langue",
+    uploadPhoto: "Charger la photo de la planche",
+    rotateImage: "Pivoter la photo de 90°",
+    perspectiveTitle: "Correction de perspective",
+    startPerspective: "Choisir les coins",
+    resetPerspective: "Réinitialiser",
+    perspectiveHint: "Ordre : haut gauche, haut droite, bas droite, bas gauche.",
+    perspectiveRemaining: "Points restants :",
+    boardTitle: "Calibrer la planche",
+    boardLength: "X [mm]",
+    boardWidth: "Y [mm]",
+    xAxis: "Axe X",
+    yAxis: "Axe Y",
+    moveFrame: "Déplacer le cadre",
+    resizeFrame: "Redimensionner le cadre",
+    partsTitle: "Pièces & défauts",
+    addPart: "Pièce",
+    addDefect: "Défaut",
+    duplicatePart: "Dupliquer",
+    partName: "Nom",
+    partLength: "X [mm]",
+    partWidth: "Y [mm]",
+    deletePart: "Supprimer la pièce",
+    deleteDefect: "Supprimer le défaut",
+    defectMoveHint: "Redimensionner les défauts avec les poignées d’angle.",
+    gridTitle: "Grille & trait de scie",
+    showGrid: "Afficher la grille de 10 cm",
+    kerfWidth: "Trait de scie [mm]",
+    resultTitle: "Rendement",
+    boardArea: "Surface de la planche",
+    validPartArea: "Surface valide des pièces",
+    yield: "Rendement",
+    valid: "valide",
+    overlapsDefect: "chevauche un défaut",
+    outsideBoard: "hors zone",
+    undo: "Retour",
+    redo: "Avancer",
+    zoomIn: "Zoom +",
+    zoomOut: "Zoom −",
+    zoomFit: "Ajuster",
+    zoomReset: "100 %",
+    exportPdf: "PDF",
+    printPdf: "Imprimer PDF",
+    reportTitle: "Rapport de rendement",
+    partsTableTitle: "Pièces",
+    imageTitle: "Image",
+    name: "Nom",
+    status: "Statut",
+    part: "Pièce",
+    defect: "Défaut",
+    xLegend: "X = longueur de la planche",
+    yLegend: "Y = largeur de la planche",
+    photo: "Photo",
+  },
 };
 
 const solveLinearSystem = (matrix, vector) => {
@@ -232,6 +360,8 @@ function IconButton({ children, onClick, disabled, active, danger }) {
 }
 
 export default function App() {
+  const [language, setLanguage] = useState("de");
+  const T = TRANSLATIONS[language];
   const [imageSrc, setImageSrc] = useState("");
   const [imageSize, setImageSize] = useState({ width: 1000, height: 600 });
   const [board, setBoard] = useState({ x: 80, y: 60, width: 700, height: 240, realLengthMm: 4000, realWidthMm: 500 });
@@ -402,7 +532,7 @@ export default function App() {
     const rows = enrichedParts.map((p) => `<tr><td>${p.name}</td><td>${Math.round(p.lengthMm)}</td><td>${Math.round(p.widthMm)}</td><td>${(p.areaMm2 / 1000000).toFixed(3)}</td><td>${p.valid ? T.valid : p.overlapsDefect ? T.overlapsDefect : T.outsideBoard}</td></tr>`).join("");
     const win = window.open("", "_blank");
     if (!win) return;
-    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${T.exportPdf}</title><style>body{font-family:Arial;margin:24px;color:#111}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ccc;padding:6px}.layout{display:grid;grid-template-columns:1fr 1.2fr;gap:20px}img{width:100%;border:1px solid #ccc}.summary{display:flex;gap:12px;margin:12px 0}.box{border:1px solid #ccc;padding:10px;border-radius:8px}</style></head><body><button onclick="window.print()">PDF drucken</button><h1>Ausbeutebericht</h1><div class="summary"><div class="box">${T.boardArea}<br>${(boardAreaMm2 / 1000000).toFixed(3)} m²</div><div class="box">${T.validPartArea}<br>${(validAreaMm2 / 1000000).toFixed(3)} m²</div><div class="box">${T.yield}<br>${yieldPercent.toFixed(1)} %</div></div><div class="layout"><div><h2>Bauteile</h2><table><thead><tr><th>Name</th><th>X [mm]</th><th>Y [mm]</th><th>m²</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div><div><h2>Bild</h2><img src="${svgUrl}"></div></div></body></html>`);
+    win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${T.exportPdf}</title><style>body{font-family:Arial;margin:24px;color:#111}table{border-collapse:collapse;width:100%;font-size:12px}td,th{border:1px solid #ccc;padding:6px}.layout{display:grid;grid-template-columns:1fr 1.2fr;gap:20px}img{width:100%;border:1px solid #ccc}.summary{display:flex;gap:12px;margin:12px 0}.box{border:1px solid #ccc;padding:10px;border-radius:8px}</style></head><body><button onclick="window.print()">${T.printPdf}</button><h1>${T.reportTitle}</h1><div class="summary"><div class="box">${T.boardArea}<br>${(boardAreaMm2 / 1000000).toFixed(3)} m²</div><div class="box">${T.validPartArea}<br>${(validAreaMm2 / 1000000).toFixed(3)} m²</div><div class="box">${T.yield}<br>${yieldPercent.toFixed(1)} %</div></div><div class="layout"><div><h2>${T.partsTableTitle}</h2><table><thead><tr><th>${T.name}</th><th>X [mm]</th><th>Y [mm]</th><th>m²</th><th>${T.status}</th></tr></thead><tbody>${rows}</tbody></table></div><div><h2>${T.imageTitle}</h2><img src="${svgUrl}"></div></div></body></html>`);
     win.document.close();
   };
 
@@ -634,10 +764,18 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand">
           <h1>{T.appTitle}</h1>
-          <p>Ausbeute visuell planen und dokumentieren</p>
+          <p>{T.subtitle}</p>
         </div>
 
-        <CardBox title="Foto" collapsed={collapsed.setup} onToggle={() => toggle("setup")}>
+        <CardBox title={T.photo} collapsed={collapsed.setup} onToggle={() => toggle("setup")}>
+          <div className="field">
+            <label>{T.language}</label>
+            <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
           <div className="field">
             <label>{T.uploadPhoto}</label>
             <input className="inputFile" type="file" accept="image/*" onChange={handleImageUpload} />
@@ -686,7 +824,7 @@ export default function App() {
           )}
           {selectedDefect && (
             <div className="panel">
-              <div className="muted">Fehler mit Ziehpunkten an den Ecken skalieren.</div>
+              <div className="muted">{T.defectMoveHint}</div>
               <IconButton danger onClick={removeSelectedDefect}><Trash2 size={16} />{T.deleteDefect}</IconButton>
             </div>
           )}
@@ -717,7 +855,7 @@ export default function App() {
           <div className="toolbarLeft">
             <IconButton onClick={undo} disabled={history.past.length === 0}><Undo2 size={16} />{T.undo}</IconButton>
             <IconButton onClick={redo} disabled={history.future.length === 0}><Redo2 size={16} />{T.redo}</IconButton>
-            <IconButton onClick={exportPdf}>PDF {T.exportPdf}</IconButton>
+            <IconButton onClick={exportPdf}>{T.exportPdf}</IconButton>
           </div>
           <div className="toolbarRight">
             <IconButton onClick={() => setZoom((z) => clamp(Number((z - 0.25).toFixed(2)), 0.2, 8))}><ZoomOut size={16} />{T.zoomOut}</IconButton>
@@ -810,7 +948,7 @@ export default function App() {
               <div className="axisYLine" />
               <div className="axisXLabel">X</div>
               <div className="axisYLabel">Y</div>
-              <div className="axisLegend">X = Brettlänge<br />Y = Brettbreite</div>
+              <div className="axisLegend">{T.xLegend}<br />{T.yLegend}</div>
             </div>
           </div>
         </div>
