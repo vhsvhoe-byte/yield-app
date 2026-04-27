@@ -477,6 +477,14 @@ export default function App() {
   const onPointerDownPart = (event, partId) => {
     if (perspectiveMode) return;
     event.stopPropagation();
+    setSelectedPartId(partId);
+    setSelectedDefectId(null);
+    setDragState(null);
+  };
+
+  const onPointerDownMovePart = (event, partId) => {
+    if (perspectiveMode) return;
+    event.stopPropagation();
     const pos = getMousePos(event);
     const part = parts.find((p) => p.id === partId);
     if (!part) return;
@@ -780,9 +788,15 @@ export default function App() {
                     );
                   })}
                   {enrichedParts.map((p) => (
-                    <g key={p.id} onPointerDown={(e) => onPointerDownPart(e, p.id)}>
-                      <rect x={p.x} y={p.y} width={p.widthPx} height={p.heightPx} fill={p.valid ? "rgba(59,130,246,.22)" : "rgba(244,63,94,.22)"} stroke={p.id === selectedPartId ? "#1d4ed8" : p.valid ? "#2563eb" : "#e11d48"} strokeWidth={sawKerfStrokePx} />
-                      <text x={p.x + 8} y={p.y + 20} fontSize="18" fill="#0f172a">{p.name}</text>
+                    <g key={p.id}>
+                      <rect x={p.x} y={p.y} width={p.widthPx} height={p.heightPx} fill={p.valid ? "rgba(59,130,246,.22)" : "rgba(244,63,94,.22)"} stroke={p.id === selectedPartId ? "#1d4ed8" : p.valid ? "#2563eb" : "#e11d48"} strokeWidth={sawKerfStrokePx} onPointerDown={(e) => onPointerDownPart(e, p.id)} />
+                      <text x={p.x + 8} y={p.y + 20} fontSize="18" fill="#0f172a" pointerEvents="none">{p.name}</text>
+                      {p.id === selectedPartId && (
+                        <g>
+                          <rect x={p.x + Math.max(0, p.widthPx / 2 - 36)} y={p.y + Math.max(8, p.heightPx / 2 - 14)} width="72" height="28" rx="8" fill="#1d4ed8" stroke="#fff" strokeWidth="2" onPointerDown={(e) => onPointerDownMovePart(e, p.id)} />
+                          <text x={p.x + p.widthPx / 2} y={p.y + Math.max(27, p.heightPx / 2 + 5)} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff" pointerEvents="none">MOVE</text>
+                        </g>
+                      )}
                     </g>
                   ))}
                 </g>
