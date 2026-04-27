@@ -489,6 +489,14 @@ export default function App() {
   const onPointerDownDefect = (event, defectId) => {
     if (perspectiveMode) return;
     event.stopPropagation();
+    setSelectedDefectId(defectId);
+    setSelectedPartId(null);
+    setDragState(null);
+  };
+
+  const onPointerDownMoveDefect = (event, defectId) => {
+    if (perspectiveMode) return;
+    event.stopPropagation();
     const pos = getMousePos(event);
     const defect = defects.find((d) => d.id === defectId);
     if (!defect) return;
@@ -760,8 +768,14 @@ export default function App() {
                     return (
                       <g key={d.id}>
                         <rect x={d.x} y={d.y} width={d.widthPx} height={d.heightPx} fill={d.id === selectedDefectId ? "rgba(239,68,68,.35)" : "rgba(239,68,68,.20)"} stroke="#dc2626" strokeWidth={sawKerfStrokePx} onPointerDown={(e) => onPointerDownDefect(e, d.id)} />
-                        <text x={d.x + 8} y={d.y + 20} fontSize="18" fill="#7f1d1d">{d.name}</text>
-                        {d.id === selectedDefectId && handles.map((h) => <rect key={h.key} x={h.x - 7} y={h.y - 7} width="14" height="14" fill="#fff" stroke="#dc2626" strokeWidth="2" onPointerDown={(e) => onPointerDownResizeDefect(e, d.id, h.key)} />)}
+                        <text x={d.x + 8} y={d.y + 20} fontSize="18" fill="#7f1d1d" pointerEvents="none">{d.name}</text>
+                        {d.id === selectedDefectId && (
+                          <g>
+                            <rect x={d.x + Math.max(0, d.widthPx / 2 - 36)} y={d.y + Math.max(8, d.heightPx / 2 - 14)} width="72" height="28" rx="8" fill="#7f1d1d" stroke="#fff" strokeWidth="2" onPointerDown={(e) => onPointerDownMoveDefect(e, d.id)} />
+                            <text x={d.x + d.widthPx / 2} y={d.y + Math.max(27, d.heightPx / 2 + 5)} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff" pointerEvents="none">MOVE</text>
+                          </g>
+                        )}
+                        {d.id === selectedDefectId && handles.map((h) => <rect key={h.key} x={h.x - 12} y={h.y - 12} width="24" height="24" rx="5" fill="#fff" stroke="#dc2626" strokeWidth="3" onPointerDown={(e) => onPointerDownResizeDefect(e, d.id, h.key)} />)}
                       </g>
                     );
                   })}
