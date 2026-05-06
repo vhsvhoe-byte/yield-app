@@ -1,21 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  AlertCircle,
-  ChevronDown,
-  Copy,
-  CornerDownRight,
-  Move,
-  Plus,
-  Redo2,
-  RotateCw,
-  Search,
-  Square,
-  Trash2,
-  Undo2,
-  Upload,
-  ZoomIn,
-  ZoomOut,
-} from "lucide-react";
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const clamp01 = (value) => clamp(value, 0, 1);
@@ -348,7 +331,7 @@ function CardBox({ title, collapsed, onToggle, children }) {
     <section className="card">
       <button className="cardHeader" type="button" onClick={onToggle}>
         <span>{title}</span>
-        <ChevronDown className={collapsed ? "chevron rotated" : "chevron"} size={18} />
+        <span className={collapsed ? "chevron rotated" : "chevron"}>⌄</span>
       </button>
       {!collapsed && <div className="cardBody">{children}</div>}
     </section>
@@ -382,6 +365,7 @@ export default function App() {
   const [history, setHistory] = useState({ past: [], future: [] });
   const [zoom, setZoom] = useState(1);
   const [collapsed, setCollapsed] = useState({ setup: false, perspective: true, board: false, parts: false, grid: true, result: false });
+  const [isMobile, setIsMobile] = useState(false);
 
   const svgRef = useRef(null);
   const workspaceRef = useRef(null);
@@ -432,6 +416,24 @@ export default function App() {
   useEffect(() => {
     window.setTimeout(fitImageToWorkspace, 0);
   }, [imageSize.width, imageSize.height]);
+
+  useEffect(() => {
+    const updateLayoutMode = () => {
+      const mobile = window.innerWidth <= 760;
+      setIsMobile(mobile);
+      if (mobile) {
+        setCollapsed((prev) => ({ ...prev, setup: false, perspective: true, board: true, parts: true, grid: true, result: true }));
+      }
+      window.setTimeout(fitImageToWorkspace, 0);
+    };
+    updateLayoutMode();
+    window.addEventListener("resize", updateLayoutMode);
+    window.addEventListener("orientationchange", updateLayoutMode);
+    return () => {
+      window.removeEventListener("resize", updateLayoutMode);
+      window.removeEventListener("orientationchange", updateLayoutMode);
+    };
+  }, []);
 
   const toggle = (key) => setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
 
@@ -769,7 +771,7 @@ export default function App() {
       <style>{`
         * { box-sizing: border-box; }
         body { margin: 0; }
-        .shell { height: 100vh; display: grid; grid-template-columns: 340px 1fr; background: #0f172a; color: #e5e7eb; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; }
+        .shell { height: 100dvh; display: grid; grid-template-columns: 340px 1fr; background: #0f172a; color: #e5e7eb; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; overflow: hidden; }
         .sidebar { background: #172033; border-right: 1px solid #263449; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
         .brand { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
         .brand h1 { font-size: 20px; line-height: 1.1; margin: 0; }
@@ -785,12 +787,12 @@ export default function App() {
         .workspace { flex: 1; overflow: auto; padding: 24px; background: radial-gradient(circle at center, #182235 0%, #0f172a 70%); position: relative; }
         .canvasWrap { min-width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; }
         .surface { background: #dbe4ee; border-radius: 12px; box-shadow: 0 18px 50px rgba(0,0,0,.35); overflow: hidden; }
-        .btn { min-height: 38px; border: 1px solid #334155; background: #1e293b; color: #f8fafc; border-radius: 10px; padding: 0 12px; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; font-weight: 650; font-size: 13px; }
+        .btn { min-height: 42px; border: 1px solid #334155; background: #1e293b; color: #f8fafc; border-radius: 10px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; font-weight: 650; font-size: 13px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .btn:hover:not(:disabled) { background: #273449; }
         .btn:disabled { opacity: .42; cursor: not-allowed; }
         .btn.active { background: #2563eb; border-color: #2563eb; }
         .btn.danger { background: #991b1b; border-color: #991b1b; }
-        .input, select { width: 100%; min-height: 38px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; padding: 8px 10px; }
+        .input, select { width: 100%; min-height: 42px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #f8fafc; padding: 8px 10px; font-size: 16px; }
         .inputFile { width: 100%; color: #dbeafe; font-size: 13px; }
         label { display: block; color: #cbd5e1; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
         .field { display: flex; flex-direction: column; gap: 4px; }
@@ -814,7 +816,37 @@ export default function App() {
         .axisXLabel { position: absolute; left: 114px; bottom: 48px; color: #60a5fa; font-weight: 900; font-size: 14px; }
         .axisYLabel { position: absolute; left: 50px; top: 24px; color: #f87171; font-weight: 900; font-size: 14px; }
         .axisLegend { position: absolute; left: 16px; bottom: 8px; color: #cbd5e1; font-size: 11px; line-height: 1.35; }
-        @media (max-width: 900px) { .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; } .sidebar { height: 38vh; border-right: 0; border-bottom: 1px solid #263449; } .workspaceColumn { height: 62vh; } .toolbar { position: relative; } }
+        @media (max-width: 760px) {
+          .shell { grid-template-columns: 1fr; grid-template-rows: minmax(210px, 34dvh) 1fr; height: 100dvh; overflow: hidden; }
+          .sidebar { height: auto; min-height: 0; border-right: 0; border-bottom: 1px solid #263449; padding: 10px; gap: 8px; overflow: auto; -webkit-overflow-scrolling: touch; }
+          .brand { margin-bottom: 2px; }
+          .brand h1 { font-size: 22px; }
+          .brand p { font-size: 12px; }
+          .card { border-radius: 14px; }
+          .cardHeader { min-height: 48px; padding: 12px 14px; font-size: 15px; }
+          .cardBody { padding: 12px; gap: 10px; }
+          .row, .toolbarLeft, .toolbarRight { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; gap: 8px; }
+          .grid2 { grid-template-columns: 1fr 1fr; }
+          .btn { min-height: 46px; width: 100%; padding: 0 10px; font-size: 13px; border-radius: 12px; }
+          .btn { white-space: nowrap; }
+          .workspaceColumn { height: auto; min-height: 0; position: relative; }
+          .toolbar { position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 80; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: rgba(15,23,42,.98); border-top: 1px solid #334155; border-bottom: 0; display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 40dvh; overflow: auto; -webkit-overflow-scrolling: touch; }
+          .toolbar .muted { align-self: center; justify-self: center; font-size: 13px; }
+          .workspace { height: 100%; padding: 10px 10px 176px; overflow: auto; -webkit-overflow-scrolling: touch; }
+          .canvasWrap { align-items: flex-start; justify-content: flex-start; min-width: max-content; min-height: max-content; }
+          .surface { border-radius: 14px; }
+          .axisWidget { width: 118px; height: 118px; margin-top: -118px; left: 10px; bottom: 176px; transform: scale(.72); transform-origin: left bottom; }
+          .axisPanel { width: 165px; height: 150px; }
+          .hint, .muted { font-size: 12px; }
+        }
+        @media (max-width: 420px) {
+          .shell { grid-template-rows: minmax(190px, 31dvh) 1fr; }
+          .brand h1 { font-size: 20px; }
+          .brand p { display: none; }
+          .toolbar { max-height: 38dvh; }
+          .workspace { padding-bottom: 164px; }
+          .axisWidget { bottom: 164px; }
+        }
       `}</style>
 
       <aside className="sidebar">
@@ -837,13 +869,13 @@ export default function App() {
             <input className="inputFile" type="file" accept="image/*" onChange={handleImageUpload} />
           </div>
           <div className="row">
-            <IconButton onClick={handleRotateImage} disabled={!imageSrc}><RotateCw size={16} />{T.rotateImage}</IconButton>
+            <IconButton onClick={handleRotateImage} disabled={!imageSrc}>↻ {T.rotateImage}</IconButton>
           </div>
         </CardBox>
 
         <CardBox title={T.perspectiveTitle} collapsed={collapsed.perspective} onToggle={() => toggle("perspective")}>
           <div className="row">
-            <IconButton active={perspectiveMode} onClick={() => { setPerspectiveMode(true); setPerspectivePoints([]); }} disabled={!imageSrc}><CornerDownRight size={16} />{T.startPerspective}</IconButton>
+            <IconButton active={perspectiveMode} onClick={() => { setPerspectiveMode(true); setPerspectivePoints([]); }} disabled={!imageSrc}>⌞ {T.startPerspective}</IconButton>
             <IconButton onClick={() => { setPerspectivePoints([]); setPerspectiveMode(false); }}>{T.resetPerspective}</IconButton>
           </div>
           <div className="hint">{T.perspectiveHint}</div>
@@ -856,17 +888,17 @@ export default function App() {
             <div className="field"><label>{T.boardWidth}</label><input className="input" type="number" value={board.realWidthMm} onChange={(e) => setBoard((p) => ({ ...p, realWidthMm: Number(e.target.value) || 0 }))} /></div>
           </div>
           <div className="row">
-            <IconButton active={boardMode === "move"} onClick={() => setBoardMode("move")}><Move size={16} />{T.moveFrame}</IconButton>
-            <IconButton active={boardMode === "resize"} onClick={() => setBoardMode("resize")}><Square size={16} />{T.resizeFrame}</IconButton>
+            <IconButton active={boardMode === "move"} onClick={() => setBoardMode("move")}>↔ {T.moveFrame}</IconButton>
+            <IconButton active={boardMode === "resize"} onClick={() => setBoardMode("resize")}>□ {T.resizeFrame}</IconButton>
           </div>
           <div className="muted">1 px = {safeMmPerPxX.toFixed(2)} mm X / {safeMmPerPxY.toFixed(2)} mm Y</div>
         </CardBox>
 
         <CardBox title={T.partsTitle} collapsed={collapsed.parts} onToggle={() => toggle("parts")}>
           <div className="row">
-            <IconButton onClick={addPart}><Plus size={16} />{T.addPart}</IconButton>
-            <IconButton onClick={addDefect}><AlertCircle size={16} />{T.addDefect}</IconButton>
-            <IconButton onClick={duplicateSelectedPart} disabled={!selectedPart}><Copy size={16} />{T.duplicatePart}</IconButton>
+            <IconButton onClick={addPart}>+ {T.addPart}</IconButton>
+            <IconButton onClick={addDefect}>! {T.addDefect}</IconButton>
+            <IconButton onClick={duplicateSelectedPart} disabled={!selectedPart}>⧉ {T.duplicatePart}</IconButton>
           </div>
           {selectedPart && (
             <div className="panel">
@@ -875,13 +907,13 @@ export default function App() {
                 <div className="field"><label>{T.partLength}</label><input className="input" type="number" value={selectedPart.lengthMm} onChange={(e) => updateSelectedPart({ lengthMm: Number(e.target.value) || 0 })} /></div>
                 <div className="field"><label>{T.partWidth}</label><input className="input" type="number" value={selectedPart.widthMm} onChange={(e) => updateSelectedPart({ widthMm: Number(e.target.value) || 0 })} /></div>
               </div>
-              <IconButton danger onClick={removeSelectedPart}><Trash2 size={16} />{T.deletePart}</IconButton>
+              <IconButton danger onClick={removeSelectedPart}>🗑 {T.deletePart}</IconButton>
             </div>
           )}
           {selectedDefect && (
             <div className="panel">
               <div className="muted">{T.defectMoveHint}</div>
-              <IconButton danger onClick={removeSelectedDefect}><Trash2 size={16} />{T.deleteDefect}</IconButton>
+              <IconButton danger onClick={removeSelectedDefect}>🗑 {T.deleteDefect}</IconButton>
             </div>
           )}
         </CardBox>
@@ -909,14 +941,14 @@ export default function App() {
       <main className="workspaceColumn">
         <div className="toolbar">
           <div className="toolbarLeft">
-            <IconButton onClick={undo} disabled={history.past.length === 0}><Undo2 size={16} />{T.undo}</IconButton>
-            <IconButton onClick={redo} disabled={history.future.length === 0}><Redo2 size={16} />{T.redo}</IconButton>
+            <IconButton onClick={undo} disabled={history.past.length === 0}>↶ {T.undo}</IconButton>
+            <IconButton onClick={redo} disabled={history.future.length === 0}>↷ {T.redo}</IconButton>
             <IconButton onClick={exportPdf}>{T.exportPdf}</IconButton>
           </div>
           <div className="toolbarRight">
-            <IconButton onClick={() => setZoom((z) => clamp(Number((z - 0.25).toFixed(2)), 0.2, 8))}><ZoomOut size={16} />{T.zoomOut}</IconButton>
-            <IconButton onClick={() => setZoom((z) => clamp(Number((z + 0.25).toFixed(2)), 0.2, 8))}><ZoomIn size={16} />{T.zoomIn}</IconButton>
-            <IconButton onClick={fitImageToWorkspace}><Search size={16} />{T.zoomFit}</IconButton>
+            <IconButton onClick={() => setZoom((z) => clamp(Number((z - 0.25).toFixed(2)), 0.2, 8))}>− {T.zoomOut}</IconButton>
+            <IconButton onClick={() => setZoom((z) => clamp(Number((z + 0.25).toFixed(2)), 0.2, 8))}>+ {T.zoomIn}</IconButton>
+            <IconButton onClick={fitImageToWorkspace}>⌕ {T.zoomFit}</IconButton>
             <IconButton onClick={() => setZoom(1)}>{T.zoomReset}</IconButton>
             <span className="muted">{Math.round(zoom * 100)} %</span>
           </div>
