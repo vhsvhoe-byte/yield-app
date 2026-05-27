@@ -14,6 +14,7 @@ const TRANSLATIONS = {
     mediaLibrary: "Mediathek",
     uploadToLibrary: "Zur Mediathek hinzufügen",
     chooseLibraryPhoto: "Foto aus Mediathek wählen",
+    close: "Schließen",
     rotateImage: "Foto 90° drehen",
     perspectiveTitle: "Perspektivkorrektur",
     startPerspective: "Brettecken wählen",
@@ -39,7 +40,7 @@ const TRANSLATIONS = {
     defectMoveHint: "Fehler mit Ziehpunkten an den Ecken skalieren.",
     gridTitle: "Raster & Sägefuge",
     showGrid: "10-cm-Raster anzeigen",
-@@ -46,50 +50,53 @@ const TRANSLATIONS = {
+@@ -46,50 +51,54 @@ const TRANSLATIONS = {
     overlapsPart: "überlappt Bauteil",
     undo: "Zurück",
     redo: "Vor",
@@ -68,6 +69,7 @@ const TRANSLATIONS = {
     mediaLibrary: "Media library",
     uploadToLibrary: "Add to library",
     chooseLibraryPhoto: "Choose from media library",
+    close: "Close",
     rotateImage: "Rotate photo 90°",
     perspectiveTitle: "Perspective correction",
     startPerspective: "Select board corners",
@@ -93,7 +95,7 @@ const TRANSLATIONS = {
     defectMoveHint: "Resize defects using the corner handles.",
     gridTitle: "Grid & saw kerf",
     showGrid: "Show 10 cm grid",
-@@ -104,50 +111,53 @@ const TRANSLATIONS = {
+@@ -104,50 +113,54 @@ const TRANSLATIONS = {
     overlapsPart: "overlaps part",
     undo: "Undo",
     redo: "Redo",
@@ -122,6 +124,7 @@ const TRANSLATIONS = {
     mediaLibrary: "Médiathèque",
     uploadToLibrary: "Ajouter à la médiathèque",
     chooseLibraryPhoto: "Choisir depuis la médiathèque",
+    close: "Fermer",
     rotateImage: "Pivoter la photo de 90°",
     perspectiveTitle: "Correction de perspective",
     startPerspective: "Choisir les coins",
@@ -147,7 +150,7 @@ const TRANSLATIONS = {
     defectMoveHint: "Redimensionner les défauts avec les poignées d’angle.",
     gridTitle: "Grille & trait de scie",
     showGrid: "Afficher la grille de 10 cm",
-@@ -297,97 +307,131 @@ const rectifyImageFromCorners = (src, points, targetAspectRatio) =>
+@@ -297,97 +310,131 @@ const rectifyImageFromCorners = (src, points, targetAspectRatio) =>
       srcCtx.drawImage(img, 0, 0);
       const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
       const outData = outCtx.createImageData(targetWidth, targetHeight);
@@ -279,7 +282,7 @@ export default function App() {
       const insideBoard = p.x >= 0 && p.y >= 0 && p.x + widthPx <= board.width && p.y + heightPx <= board.height;
       const overlapsDefect = enrichedDefects.some((d) => !(p.x + widthPx <= d.x || p.x >= d.x + d.widthPx || p.y + heightPx <= d.y || p.y >= d.y + d.heightPx));
       return { ...p, widthPx, heightPx, areaMm2: p.lengthMm * p.widthMm, insideBoard, overlapsDefect };
-@@ -455,50 +499,58 @@ export default function App() {
+@@ -455,50 +502,58 @@ export default function App() {
   const redo = () => {
     setHistory((prev) => {
       if (prev.future.length === 0) return prev;
@@ -338,7 +341,7 @@ export default function App() {
       const yCandidates = [
         other.y - heightPx,
         other.y,
-@@ -515,62 +567,81 @@ export default function App() {
+@@ -515,62 +570,81 @@ export default function App() {
       });
 
       yCandidates.forEach((candidate) => {
@@ -426,7 +429,7 @@ export default function App() {
       }
       setPerspectiveMode(false);
       setPerspectivePoints([]);
-@@ -749,150 +820,182 @@ export default function App() {
+@@ -749,151 +823,195 @@ export default function App() {
       let widthPx = startDefect.widthPx;
       let heightPx = startDefect.heightPx;
       const right = startDefect.x + startDefect.widthPx;
@@ -486,6 +489,12 @@ export default function App() {
         .hint { color: #fbbf24; background: rgba(251,191,36,.1); border: 1px solid rgba(251,191,36,.3); border-radius: 10px; padding: 10px; font-size: 12px; }
         .muted { color: #94a3b8; font-size: 12px; }
         .panel { border: 1px solid #334155; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #0f172a; }
+        .libraryGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .libraryCard { border: 1px solid #334155; border-radius: 10px; background: #0b1220; color: #e5e7eb; padding: 8px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+        .libraryCard img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; border: 1px solid #334155; }
+        .libraryMeta { font-size: 12px; color: #cbd5e1; }
+        .libraryModal { position: fixed; inset: 0; z-index: 120; background: rgba(2,6,23,.84); padding: 12px; display: flex; justify-content: center; align-items: flex-start; overflow: auto; }
+        .libraryModalInner { width: min(980px, 100%); border: 1px solid #334155; border-radius: 14px; background: #0f172a; padding: 12px; display: grid; gap: 12px; }
         .summary { display: grid; gap: 8px; font-size: 13px; }
         .resultBig { color: #38bdf8; font-size: 28px; font-weight: 800; }
         .status { border-radius: 10px; padding: 8px; font-size: 12px; border: 1px solid #334155; }
@@ -518,6 +527,8 @@ export default function App() {
         @media (max-width: 760px) {
           .shell { grid-template-columns: 1fr; grid-template-rows: minmax(210px, 34dvh) 1fr; height: 100dvh; overflow: hidden; }
           .sidebar { height: auto; min-height: 0; border-right: 0; border-bottom: 1px solid #263449; padding: 10px; gap: 8px; overflow: auto; -webkit-overflow-scrolling: touch; }
+          .shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 100dvh; height: auto; overflow: visible; }
+          .sidebar { height: auto; border-right: 0; border-bottom: 1px solid #263449; padding: 10px; gap: 8px; overflow: visible; }
           .brand { margin-bottom: 2px; }
           .brand h1 { font-size: 22px; }
           .brand p { font-size: 12px; }
@@ -530,23 +541,28 @@ export default function App() {
           .btn { white-space: nowrap; }
           .workspaceColumn { height: auto; min-height: 0; position: relative; }
           .toolbar { position: fixed; left: 0; right: 0; bottom: 0; top: auto; z-index: 80; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: rgba(15,23,42,.98); border-top: 1px solid #334155; border-bottom: 0; display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 40dvh; overflow: auto; -webkit-overflow-scrolling: touch; }
+          .toolbar { position: sticky; top: 0; z-index: 80; padding: 8px 10px; background: rgba(15,23,42,.98); border-bottom: 1px solid #334155; display: grid; grid-template-columns: 1fr; gap: 8px; max-height: none; overflow: visible; }
           .toolbar .muted { align-self: center; justify-self: center; font-size: 13px; }
           .workspace { height: 100%; padding: 10px 10px 176px; overflow: auto; -webkit-overflow-scrolling: touch; }
+          .workspace { min-height: 60dvh; padding: 10px; overflow: auto; -webkit-overflow-scrolling: touch; }
           .canvasWrap { align-items: flex-start; justify-content: flex-start; min-width: max-content; min-height: max-content; }
           .surface { border-radius: 14px; }
           .axisWidget { width: 118px; height: 118px; margin-top: -118px; left: 10px; bottom: 176px; transform: scale(.72); transform-origin: left bottom; }
+          .axisWidget { width: 118px; height: 118px; margin-top: -118px; left: 10px; bottom: 10px; transform: scale(.72); transform-origin: left bottom; }
           .axisPanel { width: 165px; height: 150px; }
           .hint, .muted { font-size: 12px; }
         }
         @media (max-width: 420px) {
           .shell { grid-template-rows: minmax(190px, 31dvh) 1fr; }
+          .shell { grid-template-rows: auto 1fr; }
           .brand h1 { font-size: 20px; }
           .brand p { display: none; }
-          .grid2 { grid-template-columns: 1fr; }
-          .row, .toolbarLeft, .toolbarRight { grid-template-columns: 1fr; }
           .toolbar { max-height: 38dvh; }
           .workspace { padding-bottom: 164px; }
           .axisWidget { bottom: 164px; }
+          .grid2 { grid-template-columns: 1fr; }
+          .row, .toolbarLeft, .toolbarRight { grid-template-columns: 1fr; }
+          .libraryGrid { grid-template-columns: 1fr; }
         }
       `}</style>
 
@@ -577,19 +593,27 @@ export default function App() {
             <label>{T.uploadToLibrary}</label>
             <input className="inputFile" type="file" accept="image/*" onChange={addUploadToLibrary} />
           </div>
-          {showLibrary && (
-            <div className="panel">
-              <div className="muted">{T.chooseLibraryPhoto}</div>
-              <div className="summary">
+          <div className="muted">{libraryPhotos.length} {T.mediaLibrary}</div>
+        </CardBox>
+        {showLibrary && (
+          <div className="libraryModal" role="dialog" aria-modal="true">
+            <div className="libraryModalInner">
+              <div className="row">
+                <strong>{T.chooseLibraryPhoto}</strong>
+                <IconButton onClick={() => setShowLibrary(false)}>{T.close}</IconButton>
+              </div>
+              <div className="libraryGrid">
                 {libraryPhotos.map((photo) => (
-                  <button type="button" className="btn" key={photo.id} onClick={() => loadLibraryPhoto(photo)}>
-                    {photo.label} · {photo.quality} · {photo.width}×{photo.height}
+                  <button type="button" className="libraryCard" key={photo.id} onClick={() => loadLibraryPhoto(photo)}>
+                    <img src={photo.src} alt={photo.label} />
+                    <div className="libraryMeta">{photo.label}</div>
+                    <div className="libraryMeta">Q {photo.quality} · {photo.width}×{photo.height}</div>
                   </button>
                 ))}
               </div>
             </div>
-          )}
-        </CardBox>
+          </div>
+        )}
 
         <CardBox title={T.perspectiveTitle} collapsed={collapsed.perspective} onToggle={() => toggle("perspective")}>
           <div className="row">
@@ -614,3 +638,4 @@ export default function App() {
 
         <CardBox title={T.partsTitle} collapsed={collapsed.parts} onToggle={() => toggle("parts")}>
           <div className="row">
+            <IconButton onClick={addPart}>+ {T.addPart}</IconButton>
